@@ -1,30 +1,38 @@
 <launch>
+    <!-- Define arguments with default values -->
+    <arg name="rtsp_url" default="rtsp://192.168.100.3:1025/h264.sdp" />
+    <arg name="frame_id" default="camera_optical_frame" />
+    <arg name="calibration_file" default="$(find rtsp_ros_driver)/config/calibration.yml" />
+    <arg name="publish_rate" default="30" />
+    <arg name="enable_image_view" default="false" />
+    <arg name="map_frame" default="map" />
+    
     <!-- Camera driver node -->
     <node name="rtsp_camera_driver" pkg="rtsp_ros_driver" type="rtsp_driver_node.py" output="screen" respawn="true">
         <!-- RTSP stream URL -->
-        <param name="rtsp_url" value="rtsp://192.168.100.3:1025/h264.sdp" />
+        <param name="rtsp_url" value="$(arg rtsp_url)" />
         
         <!-- Camera frame ID for tf -->
-        <param name="frame_id" value="camera_optical_frame" />
+        <param name="frame_id" value="$(arg frame_id)" />
         
         <!-- Path to calibration file -->
-        <param name="calibration_file" value="$(find rtsp_ros_driver)/config/calibration.yml" />
+        <param name="calibration_file" value="$(arg calibration_file)" />
         
         <!-- Publishing rate in Hz -->
-        <param name="publish_rate" value="30" />
+        <param name="publish_rate" value="$(arg publish_rate)" />
         
         <!-- Remap topics to standard camera namespace -->
         <remap from="~image_raw" to="camera/image_raw" />
         <remap from="~camera_info" to="camera/camera_info" />
     </node>
     
-    <!-- Optional: Image viewer for debugging
-    <node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
+    <!-- Optional: Image viewer for debugging -->
+    <node if="$(arg enable_image_view)" name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
         <remap from="image" to="camera/image_raw" />
         <param name="autosize" value="true" />
-    </node> -->
+    </node>
     
     <!-- Optional: Static transform publisher for camera frame -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="camera_broadcaster"
-        args="0 0 0 0 0 0 map camera_optical_frame" />
+        args="0 0 0 0 0 0 $(arg map_frame) $(arg frame_id)" />
 </launch>

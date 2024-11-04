@@ -1,4 +1,4 @@
-# rtsp-ros-driver
+# rtsp-camera-ros-driver
 
 This ROS package contains a driver node that reads frames from an RTSP video stream (e.g., IP Camera) and publishes them out as [sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html) ROS messages.
 It also takes in calibration yaml file from [MRPT Calibration Tool](https://docs.mrpt.org/reference/latest/app_camera-calib.html) and publishes [sensor_msgs/CameraInfo](https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/CameraInfo.html) ROS message.

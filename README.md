@@ -1,18 +1,13 @@
-# rtsp_ros_driver
+# rtsp-ros-driver
 
 This ROS package contains a driver node that reads frames from an RTSP video stream (e.g., IP Camera) and publishes them out as [sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html) ROS messages.
-
+It also takes in calibration yaml file from [MRPT Calibration Tool](https://docs.mrpt.org/reference/latest/app_camera-calib.html) and publishes [sensor_msgs/CameraInfo](https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/CameraInfo.html) ROS message.
 
 # Configuration
 
-`rtsp_ros_driver` implements the ROS [camera_info_manager](http://wiki.ros.org/camera_info_manager_py) interface.
+`rtsp_ros_driver` implements the ROS interface.
 This means that the driver node can seamlessly handle camera calibration files. `rtsp_ros_driver` stores camera
-calibration files in the directory `$ROS_HOME/camera_info/`. Export the environment variable `$ROS_HOME` to point to
-your `catkin_ws` directory.
-
-```
- export ROS_HOME=<path_to_your_catkin_ws>
-```
+calibration files in the directory `./config/calibration.yml`.
 
 
 # Tutorial
@@ -27,7 +22,7 @@ roslaunch rtsp_ros_driver rtsp_camera.launch <arguments>
 # Launch files
 
 ## rtsp_camera.launch
-Launches the main node of the package (i.e., `rtsp_driver_node`). Unlike the `rtsp_driver_node` node, this launch file allows us to specify hostname, username, password, and other parameters about the camera separately. These parameters will be combined into a standard URL format and sent to the `rtsp_driver_node` node.
+Launches the main node of the package (i.e., `rtsp_driver_node`). Unlike the `rtsp_driver_node` node, this launch file allows us to specify the feed URL and other parameters about the camera separately. It also specifies the calibration file location and the published topics names.
 
 ### Subscribed topics
 None.
@@ -39,36 +34,12 @@ Identical to the `rtsp_driver_node` node (see below).
 
 #### Mandatory arguments
 
-_hostname_
+_rtsp\_url_
   &nbsp;&nbsp;
   (`string`)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-    Hostname or IP of the RTSP camera.
-    <br/> 
-
-_username_
-  &nbsp;&nbsp;
-  (`string`)
-<br/>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-    Username for the RTSP camera.
-    <br/>     
-
-_password_
-  &nbsp;&nbsp;
-  (`string`)
-<br/>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-    Password for the RTSP camera.
-    <br/>    
-
-_stream_
-  &nbsp;&nbsp;
-  (`string`)
-<br/>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-    Name of the video stream published by the RTSP camera.
+    URL of the video stream published by the RTSP camera.
     <br/>    
     
 
@@ -76,23 +47,31 @@ _stream_
 
 _camera\_name_
   &nbsp;&nbsp;
-  (`string`, default: _rtsp\_camera_)
+  (`string`, default: _camera_)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     Namespace of the camera.
     <br/>
 
-_camera\_frame_
+_frame\_id_
   &nbsp;&nbsp;
-  (`string`, default: _rtsp\_camera\_link_)
+  (`string`, default: _camera\_optical\_frame_)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     Name of the camera reference frame.
     <br/>
 
+_calibration\_file_
+  &nbsp;&nbsp;
+  (`string`, default: $(find rtsp\_ros\_driver)/config/calibration.yml)
+<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    Location of the calibration file.
+    <br/>
+
 _image\_raw\_topic_
   &nbsp;&nbsp;
-  (`string`, default: _~image\_raw_)
+  (`string`, default: _$(arg camera\_name)/image\_raw_)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     Name of the output image topic.
@@ -100,20 +79,27 @@ _image\_raw\_topic_
 
 _camera\_info\_topic_
   &nbsp;&nbsp;
-  (`string`, default: _~camera\_info_)
+  (`string`, default: _$(arg camera\_name)/camera\_info_)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     Name of the output camera info topic.
     <br/> 
 
-_port_
+_enable\_image\_view_
   &nbsp;&nbsp;
-  (`int`, default: _554_)
+  (`bool`, default: _false_)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-    Port of the RTSP camera.
+    Image viewer for debugging.
     <br/>
 
+_publish\_rate_
+  &nbsp;&nbsp;
+  (`int`, default: _30_)
+<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    Publishing rate in Hz.
+    <br/>
     
 
 # Nodes
@@ -146,7 +132,7 @@ _/<camera\_name>/<camera\_info\_topic>_
 
 #### Mandatory parameters
 
-~_rtsp\_resource_
+~_rtsp\_url_
   &nbsp;&nbsp;
   (`string`)
 <br/>
@@ -157,34 +143,58 @@ _/<camera\_name>/<camera\_info\_topic>_
 
 #### Optional parameters
 
-~_camera\_name_
+_camera\_name_
   &nbsp;&nbsp;
-  (`string`, default: _rtsp\_camera_)
+  (`string`, default: _camera_)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     Namespace of the camera.
     <br/>
 
-~_camera\_frame_
+_frame\_id_
   &nbsp;&nbsp;
-  (`string`, default: _rtsp\_camera\_link_)
+  (`string`, default: _camera\_optical\_frame_)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     Name of the camera reference frame.
     <br/>
 
-~_image\_raw\_topic_
+_calibration\_file_
   &nbsp;&nbsp;
-  (`string`, default: _~image\_raw_)
+  (`string`, default: $(find rtsp\_ros\_driver)/config/calibration.yml)
+<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    Location of the calibration file.
+    <br/>
+
+_image\_raw\_topic_
+  &nbsp;&nbsp;
+  (`string`, default: _$(arg camera\_name)/image\_raw_)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     Name of the output image topic.
     <br/> 
 
-~_camera\_info\_topic_
+_camera\_info\_topic_
   &nbsp;&nbsp;
-  (`string`, default: _~camera\_info_)
+  (`string`, default: _$(arg camera\_name)/camera\_info_)
 <br/>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     Name of the output camera info topic.
     <br/> 
+
+_enable\_image\_view_
+  &nbsp;&nbsp;
+  (`bool`, default: _false_)
+<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    Image viewer for debugging.
+    <br/>
+
+_publish\_rate_
+  &nbsp;&nbsp;
+  (`int`, default: _30_)
+<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    Publishing rate in Hz.
+    <br/>
